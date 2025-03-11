@@ -1,9 +1,0 @@
-fastapi
-uvicorn
-psycopg2-binary
-kafka-python
-requests
-streamlit
-plotly
-Faker
-streamlit-autorefresh
