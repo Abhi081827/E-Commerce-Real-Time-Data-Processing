@@ -17,7 +17,7 @@ st.set_page_config(
 )
 
 # Get API URL from environment variables; default to localhost if not set
-API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8080")
+API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
 
 @st.cache_data(ttl=30)
 def get_all_transactions():

@@ -15,6 +15,22 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("DataSimulator")
 
+def get_kafka_producer(bootstrap_servers):
+    """
+    Continuously attempts to create a KafkaProducer until successful.
+    """
+    while True:
+        try:
+            producer = KafkaProducer(
+                bootstrap_servers=bootstrap_servers,
+                value_serializer=lambda v: json.dumps(v).encode("utf-8")
+            )
+            logger.info("Connected to Kafka successfully.")
+            return producer
+        except Exception as e:
+            logger.error(f"Error creating Kafka producer: {e}. Retrying in 5 seconds...")
+            time.sleep(5)
+
 def main():
     kafka_servers = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
     topic_name = os.getenv("TRANSACTION_TOPIC", "transactions_topic")
@@ -37,14 +53,8 @@ def main():
     ]
     discount_options = [0, 0, 0, 5, 10, 15]
 
-    try:
-        producer = KafkaProducer(
-            bootstrap_servers=kafka_servers,
-            value_serializer=lambda v: json.dumps(v).encode("utf-8")
-        )
-    except Exception as e:
-        logger.error(f"Error creating Kafka producer: {e}")
-        return
+    # Get a KafkaProducer with a retry loop
+    producer = get_kafka_producer(kafka_servers)
 
     logger.info(f"Data Simulator started. Publishing to topic '{topic_name}' on {kafka_servers}")
     counter = 1

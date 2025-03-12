@@ -5,9 +5,9 @@ services:
     image: postgres:13
     container_name: postgres
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-0818}
-      POSTGRES_DB: ${POSTGRES_DB:-financial_db}
+      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-0818}"
+      POSTGRES_DB: "${POSTGRES_DB:-financial_db}"
     ports:
       - "5432:5432"
     volumes:
@@ -17,8 +17,8 @@ services:
     image: confluentinc/cp-zookeeper:latest
     container_name: zookeeper
     environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_CLIENT_PORT: "2181"
+      ZOOKEEPER_TICK_TIME: "2000"
     ports:
       - "2181:2181"
 
@@ -30,12 +30,12 @@ services:
     ports:
       - "9092:9092"
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_BROKER_ID: "1"
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
 
   fastapi:
     build:
@@ -47,10 +47,10 @@ services:
     ports:
       - "8000:8000"
     environment:
-      POSTGRES_HOST: postgres
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-0818}
-      POSTGRES_DB: ${POSTGRES_DB:-financial_db}
+      POSTGRES_HOST: "postgres"
+      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-0818}"
+      POSTGRES_DB: "${POSTGRES_DB:-financial_db}"
 
   consumer:
     build:
@@ -61,12 +61,12 @@ services:
       - postgres
       - kafka
     environment:
-      POSTGRES_HOST: postgres
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-0818}
-      POSTGRES_DB: ${POSTGRES_DB:-financial_db}
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      TRANSACTION_TOPIC: ${TRANSACTION_TOPIC:-transactions_topic}
+      POSTGRES_HOST: "postgres"
+      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-0818}"
+      POSTGRES_DB: "${POSTGRES_DB:-financial_db}"
+      KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+      TRANSACTION_TOPIC: "${TRANSACTION_TOPIC:-transactions_topic}"
     command: ["python", "consumer.py"]
 
   simulator:
@@ -77,8 +77,8 @@ services:
     depends_on:
       - kafka
     environment:
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      TRANSACTION_TOPIC: ${TRANSACTION_TOPIC:-transactions_topic}
+      KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+      TRANSACTION_TOPIC: "${TRANSACTION_TOPIC:-transactions_topic}"
 
   dashboard:
     build:
@@ -90,7 +90,7 @@ services:
     ports:
       - "8501:8501"
     environment:
-      API_BASE_URL: ${API_BASE_URL:-http://fastapi:8000}
+      API_BASE_URL: "${API_BASE_URL:-http://fastapi:8000}"
 
 volumes:
   postgres_data:

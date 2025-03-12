@@ -1,5 +1,6 @@
-# app.py
+
 import os
+
 import logging
 from fastapi import FastAPI, HTTPException
 import psycopg2
@@ -11,6 +12,8 @@ load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("FastAPI-App")
+
+
 
 app = FastAPI()
 
