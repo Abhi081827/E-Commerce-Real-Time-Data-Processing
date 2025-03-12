@@ -37,10 +37,10 @@ You can deploy this system **manually** or via **Docker Compose**.
 
 ```bash
 # Clone the repository
-git clone https://github.com/<your-username>/<repo-name>.git
+git clone [https://github.com/<your-username>/<repo-name>.git](https://github.com/Abhi081827/E-Commerce-Real-Time-Data-Processing.git)
 
 # Navigate into the project directory
-cd <repo-name>
+cd E-Commerce-Real-Time-Data-Processing
 ```
 
 ---
