@@ -1,32 +1,25 @@
-# simulator/data_simulator.py
+# data_simulator.py
 import os
 import time
 import json
 import random
+import logging
 from datetime import datetime
 from faker import Faker
 from kafka import KafkaProducer
-from kafka.errors import NoBrokersAvailable
+from dotenv import load_dotenv
 
-def create_producer():
-    kafka_servers = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092").split(',')
-    while True:
-        try:
-            producer = KafkaProducer(
-                bootstrap_servers=kafka_servers,
-                value_serializer=lambda v: json.dumps(v).encode("utf-8")
-            )
-            print("Connected to Kafka broker.")
-            return producer
-        except NoBrokersAvailable:
-            print("No brokers available. Retrying in 5 seconds...")
-            time.sleep(5)
+# Load environment variables from .env
+load_dotenv()
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("DataSimulator")
 
 def main():
+    kafka_servers = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
     topic_name = os.getenv("TRANSACTION_TOPIC", "transactions_topic")
     fake = Faker()
 
-    # Sample values for e-commerce data
     categories = ["Electronics", "Clothing", "Home & Kitchen", "Beauty", "Books", "Sports"]
     payment_methods = ["Credit Card", "PayPal", "Crypto", "Cash on Delivery", "Debit Card"]
     shipping_methods = ["Standard", "Express", "Overnight"]
@@ -44,56 +37,44 @@ def main():
     ]
     discount_options = [0, 0, 0, 5, 10, 15]
 
-    # Create Kafka Producer with retry logic
-    producer = create_producer()
+    try:
+        producer = KafkaProducer(
+            bootstrap_servers=kafka_servers,
+            value_serializer=lambda v: json.dumps(v).encode("utf-8")
+        )
+    except Exception as e:
+        logger.error(f"Error creating Kafka producer: {e}")
+        return
 
-    print(f"Data Simulator started. Publishing to topic '{topic_name}'...")
+    logger.info(f"Data Simulator started. Publishing to topic '{topic_name}' on {kafka_servers}")
     counter = 1
     while True:
         now = datetime.utcnow().isoformat()
-        transaction_id = f"T{counter:05d}"
-        counter += 1
-
-        customer_id = f"C{random.randint(1, 500):04d}"
-        category = random.choice(categories)
-        product_id = f"P{random.randint(1000, 9999)}"
-        price = round(random.uniform(5, 500), 2)
-        quantity = random.randint(1, 5)
-        payment_method = random.choice(payment_methods)
-        country, city = random.choice(countries_cities)
-        discount_percent = random.choice(discount_options)
-        ship_method = random.choice(shipping_methods)
-
-        if ship_method == "Standard":
-            shipping_cost = round(random.uniform(5, 10), 2)
-        elif ship_method == "Express":
-            shipping_cost = round(random.uniform(10, 20), 2)
-        else:  # Overnight
-            shipping_cost = round(random.uniform(20, 30), 2)
-
-        subtotal = price * quantity
-        discount_amount = round(subtotal * (discount_percent / 100.0), 2)
-        order_total = round(subtotal - discount_amount + shipping_cost, 2)
-
         transaction = {
-            "transaction_id": transaction_id,
+            "transaction_id": f"T{counter:05d}",
             "timestamp": now,
-            "customer_id": customer_id,
-            "product_category": category,
-            "product_id": product_id,
-            "price": price,
-            "quantity": quantity,
-            "payment_method": payment_method,
-            "shipping_country": country,
-            "shipping_city": city,
-            "discount_percent": discount_percent,
-            "shipping_method": ship_method,
-            "shipping_cost": shipping_cost,
-            "order_total": order_total
+            "customer_id": f"C{random.randint(1, 500):04d}",
+            "product_category": random.choice(categories),
+            "product_id": f"P{random.randint(1000, 9999)}",
+            "price": round(random.uniform(5, 500), 2),
+            "quantity": random.randint(1, 5),
+            "payment_method": random.choice(payment_methods),
+            "shipping_country": random.choice(countries_cities)[0],
+            "shipping_city": random.choice(countries_cities)[1],
+            "discount_percent": random.choice(discount_options),
+            "shipping_method": random.choice(shipping_methods),
+            "shipping_cost": round(random.uniform(5, 30), 2)
         }
+        subtotal = transaction["price"] * transaction["quantity"]
+        discount_amount = round(subtotal * (transaction["discount_percent"] / 100.0), 2)
+        transaction["order_total"] = round(subtotal - discount_amount + transaction["shipping_cost"], 2)
 
-        producer.send(topic_name, transaction)
-        print(f"Produced: {transaction}")
+        try:
+            producer.send(topic_name, transaction)
+            logger.info(f"Produced: {transaction}")
+        except Exception as e:
+            logger.error(f"Error sending message: {e}")
+        counter += 1
         time.sleep(1)
 
 if __name__ == "__main__":

@@ -3,10 +3,11 @@ version: '3.8'
 services:
   postgres:
     image: postgres:13
+    container_name: postgres
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 0818
-      POSTGRES_DB: financial_db
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-0818}
+      POSTGRES_DB: ${POSTGRES_DB:-financial_db}
     ports:
       - "5432:5432"
     volumes:
@@ -14,6 +15,7 @@ services:
 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -22,6 +24,7 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:latest
+    container_name: kafka
     depends_on:
       - zookeeper
     ports:
@@ -37,48 +40,57 @@ services:
   fastapi:
     build:
       context: ./app
+      dockerfile: Dockerfile
+    container_name: fastapi
     depends_on:
       - postgres
     ports:
       - "8000:8000"
     environment:
       POSTGRES_HOST: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 0818
-      POSTGRES_DB: financial_db
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-0818}
+      POSTGRES_DB: ${POSTGRES_DB:-financial_db}
 
   consumer:
     build:
       context: ./consumer
+      dockerfile: Dockerfile
+    container_name: consumer
     depends_on:
       - postgres
       - kafka
     environment:
       POSTGRES_HOST: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 0818
-      POSTGRES_DB: financial_db
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-0818}
+      POSTGRES_DB: ${POSTGRES_DB:-financial_db}
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      TRANSACTION_TOPIC: transactions_topic
+      TRANSACTION_TOPIC: ${TRANSACTION_TOPIC:-transactions_topic}
+    command: ["python", "consumer.py"]
 
   simulator:
     build:
       context: ./simulator
+      dockerfile: Dockerfile
+    container_name: simulator
     depends_on:
       - kafka
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      TRANSACTION_TOPIC: transactions_topic
+      TRANSACTION_TOPIC: ${TRANSACTION_TOPIC:-transactions_topic}
 
   dashboard:
     build:
       context: ./dashboard
+      dockerfile: Dockerfile
+    container_name: dashboard
     depends_on:
       - fastapi
     ports:
       - "8501:8501"
     environment:
-      API_BASE_URL: http://fastapi:8000
+      API_BASE_URL: ${API_BASE_URL:-http://fastapi:8000}
 
 volumes:
   postgres_data:

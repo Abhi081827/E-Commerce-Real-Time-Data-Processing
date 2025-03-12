@@ -1,9 +1,11 @@
 fastapi
-uvicorn
-psycopg2-binary
+uvicorn[standard]
 kafka-python
-requests
-streamlit
-plotly
+psycopg2-binary
 Faker
+streamlit
 streamlit-autorefresh
+requests
+pandas
+plotly
+python-dotenv

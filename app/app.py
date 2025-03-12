@@ -1,8 +1,16 @@
-# app/app.py
+# app.py
 import os
+import logging
 from fastapi import FastAPI, HTTPException
 import psycopg2
 import uvicorn
+from dotenv import load_dotenv
+
+# Load environment variables from .env
+load_dotenv()
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("FastAPI-App")
 
 app = FastAPI()
 
@@ -11,12 +19,17 @@ def get_db_connection():
         conn = psycopg2.connect(
             host=os.getenv("POSTGRES_HOST", "localhost"),
             user=os.getenv("POSTGRES_USER", "postgres"),
-            password=os.getenv("POSTGRES_PASSWORD", "0818"),
+            password=os.getenv("POSTGRES_PASSWORD", "postgres"),
             dbname=os.getenv("POSTGRES_DB", "financial_db")
         )
         return conn
     except Exception as e:
+        logger.error(f"DB Connection Error: {e}")
         raise HTTPException(status_code=500, detail=f"DB Connection Error: {e}")
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
 
 @app.get("/transactions/all")
 def get_all_transactions():
@@ -36,6 +49,7 @@ def get_all_transactions():
     except Exception as e:
         cur.close()
         conn.close()
+        logger.error(f"Query Execution Error: {e}")
         raise HTTPException(status_code=500, detail=f"Query Execution Error: {e}")
     
     cur.close()

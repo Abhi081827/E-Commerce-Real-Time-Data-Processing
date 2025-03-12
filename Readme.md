@@ -1,4 +1,4 @@
-```markdown
+
 # Real-Time Data Processing Pipeline
 
 This repository contains a **real-time data processing pipeline** using **Apache Kafka**, **PostgreSQL**, and **Python** microservices. The pipeline simulates financial transactions, processes them in real time, and visualizes data via a web dashboard.
@@ -22,7 +22,7 @@ You can deploy this system **manually** or via **Docker Compose**.
 
 ## System Architecture
 
-![Real-Time Data Pipeline Architecture](image.png)
+![Real-Time Data Pipeline Architecture](Architecture/image.png)
 
 1. **Data Generation**: The Data Simulator generates mock financial transactions.
 2. **Kafka Messaging System**: Kafka + ZooKeeper handle message streaming and topic management.
